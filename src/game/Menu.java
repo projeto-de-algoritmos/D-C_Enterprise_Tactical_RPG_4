@@ -57,8 +57,8 @@ public class Menu {
 		panel.setSize(500, 500);
 		panel.add(startButton, BorderLayout.PAGE_START);
 		panel.add(gridSize, BorderLayout.CENTER);
-		panel.add(raiseGridSizeButton, BorderLayout.LINE_START);
-		panel.add(lowerGridSizeButton, BorderLayout.LINE_END);
+		panel.add(raiseGridSizeButton, BorderLayout.LINE_END);
+		panel.add(lowerGridSizeButton, BorderLayout.LINE_START);
 
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setTitle("Enterprise Tactical RPG");

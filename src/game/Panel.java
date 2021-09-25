@@ -12,6 +12,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BinaryOperator;
 
 import javax.swing.JPanel;
@@ -88,8 +89,8 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 	private static final Integer FORBIDDEN = -1;
 	private static final Integer EMPTY = 0;
 	private static final Integer VISITED = 1;
-	private static int WIDTH = 500;
-	private static int HEIGHT = 500;
+	private static int WIDTH;
+	private static int HEIGHT;
 	private Player player;
 	private Map map;
 	private List<Position> preview;
@@ -133,7 +134,10 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 
 	int rounds = 0;
 
-	public Panel(int size) {
+	public Panel(int size, int width, int height) {
+		
+		WIDTH = width;
+		HEIGHT = height;
 
 		// Configurações do Painel
 		setFocusable(true);
@@ -454,8 +458,10 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 					} else
 						r = p;
 				}
+				
 				enemy.setGridX(r.getPosX());
 				enemy.setGridY(r.getPosY());
+				
 			}
 
 			// Reverter mudança
@@ -464,7 +470,20 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 			}
 
 			grid.setVisitedToEmpty();
+			
+			// Atualiza a tela para mostrar o movimento individual de cada inimigo
+			delayPaint(250);
 		}
+	}
+	
+	private void delayPaint(int delay) {
+		this.paintImmediately(0, 0, WIDTH, HEIGHT);
+		try {
+			TimeUnit.MILLISECONDS.sleep(delay);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 	/**
