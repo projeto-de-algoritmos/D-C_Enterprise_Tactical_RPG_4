@@ -20,13 +20,64 @@ import javax.swing.JPanel;
 import game.entities.Enemy;
 import game.entities.Entity;
 import game.entities.GreedyEnemy;
+import game.entities.MedianEnemy;
 import game.entities.Player;
+import game.extra_algorithms.Quickselect;
 import graphs.CheapestPath;
 import graphs.GraphMatrix;
 import graphs.Position;
 
 public class Panel extends JPanel implements MouseListener, MouseMotionListener {
-	private class GreedyCheapestPath implements Comparable<GreedyCheapestPath> {
+	private class EnemyCheapestPath {
+		private final Enemy enemy;
+		private final CheapestPath<Position, Integer> path;
+		private final Boolean valid;
+
+		EnemyCheapestPath(Enemy enemy, Player player) {
+			this.enemy = enemy;
+			this.path = grid.dijkstra(new Position(enemy.getGridX(), enemy.getGridY()),
+					new Position(player.getGridX(), player.getGridY()));
+			this.valid = this.path == null ? false : true;
+		}
+
+		/**
+		 * @return the Enemy
+		 */
+		Enemy getEnemy() {
+			return enemy;
+		}
+
+		/**
+		 * @return the path
+		 */
+		CheapestPath<Position, Integer> getPath() {
+			return path;
+		}
+
+		/**
+		 * @return the valid
+		 */
+		Boolean getValid() {
+			return valid;
+		}
+	}
+	
+	private class CompareEnemyCheapestPathCost implements Comparator<EnemyCheapestPath> {
+		@Override
+		public int compare(EnemyCheapestPath o1, EnemyCheapestPath o2) {
+			if (o1.getPath().getTotalCost() < o2.getPath().getTotalCost()) {
+				return -1;
+			}
+
+			if (o1.getPath().getTotalCost() > o2.getPath().getTotalCost()) {
+				return 1;
+			}
+
+			return 0;
+		}
+	}
+	
+	private class GreedyCheapestPath extends EnemyCheapestPath implements Comparable<GreedyCheapestPath> {
 		private final GreedyEnemy greedyEnemy;
 		private final CheapestPath<Position, Integer> path;
 		private final Integer weight;
@@ -35,6 +86,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 		private final Boolean valid;
 
 		GreedyCheapestPath(GreedyEnemy greedyEnemy, Player player) {
+			super(greedyEnemy, player);
 			this.greedyEnemy = greedyEnemy;
 			this.path = grid.dijkstra(new Position(greedyEnemy.getGridX(), greedyEnemy.getGridY()),
 					new Position(player.getGridX(), player.getGridY()));
@@ -54,6 +106,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 		/**
 		 * @return the path
 		 */
+		@Override
 		CheapestPath<Position, Integer> getPath() {
 			return path;
 		}
@@ -75,6 +128,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 		/**
 		 * @return the valid
 		 */
+		@Override
 		Boolean getValid() {
 			return valid;
 		}
@@ -108,6 +162,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 
 	private List<Enemy> enemies = new ArrayList<Enemy>();
 	private List<GreedyEnemy> greedyEnemies = new ArrayList<GreedyEnemy>();
+	private List<MedianEnemy> medianEnemies = new ArrayList<MedianEnemy>();
 	private List<Entity> allEnemies = new ArrayList<Entity>();
 
 	private int sizeX;
@@ -173,10 +228,19 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 		greedyEnemies.add(new GreedyEnemy(enemyMoves, 9, 9, tileSize, off, h, w, Color.RED));
 		greedyEnemies.add(new GreedyEnemy(enemyMoves, 14, 14, tileSize, off, h, w, Color.RED));
 		greedyEnemies.add(new GreedyEnemy(enemyMoves, 9, 14, tileSize, off, h, w, Color.RED));
+		
+		// Inicializar inimigos da mediana
+		h = (int) (tileSize * 0.9); // 90% do tileSize
+		w = (int) (tileSize * 0.9); // 90% do tileSize
+		off = (tileSize - w) / 2;	 // Meio do tile
+		medianEnemies.add(new MedianEnemy(enemyMoves, 8, 8, tileSize, off, h, w, Color.RED));
+		medianEnemies.add(new MedianEnemy(enemyMoves, 13, 13, tileSize, off, h, w, Color.RED));
+		medianEnemies.add(new MedianEnemy(enemyMoves, 8, 13, tileSize, off, h, w, Color.RED));
 
 		// Lista de inimigos
 		allEnemies.addAll(enemies);
 		allEnemies.addAll(greedyEnemies);
+		allEnemies.addAll(medianEnemies);
 
 		// Inicializa Grafo do Mapa
 		grid = new GraphMatrix<Integer, Integer>(sizeX, sizeY, EMPTY, VISITED, FORBIDDEN, initialCost, minimumCost,
@@ -429,8 +493,11 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 
 		// Caminho dos inimigos Greedy
 		encontraCaminhoInimigosGreedy();
+		
+		// Caminho dos inimigos medianos
+		encontraCaminhoInimigosMedian();
 	}
-
+	
 	private void encontraCaminhoInimigosComuns() {
 		for (Enemy enemy : enemies) {
 			// Impedir inimigos de entrarem uns nos outros
@@ -450,18 +517,18 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 				int enemyTileCost = grid.getElementCost(r);
 				for (Position p : caminho) {
 					cost += grid.getElementCost(p);
-					if (cost > enemy.getMoves() + enemyTileCost)
+					if (cost > enemy.getMoves() + enemyTileCost) {
 						break;
-					else if (p.getPosX().equals(player.getGridX()) && p.getPosY().equals(player.getGridY())) {
+					} else if (p.getPosX().equals(player.getGridX()) && p.getPosY().equals(player.getGridY())) {
 						r = p;
 						break;
-					} else
+					} else {
 						r = p;
+					}
 				}
 				
 				enemy.setGridX(r.getPosX());
 				enemy.setGridY(r.getPosY());
-				
 			}
 
 			// Reverter mudança
@@ -547,6 +614,73 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 		}
 
 		grid.setVisitedToEmpty();
+	}
+	
+	/**
+	 * Encontra caminho para o inimigo que está na mediana dos movimentos
+	 * No caso de mediana de número par de inimigos, será escolhido aquele com
+	 * o maior custo de movimentos
+	 */
+	public void encontraCaminhoInimigosMedian() {		
+		grid.setVisitedToEmpty();
+		
+		List<EnemyCheapestPath> items = new ArrayList<EnemyCheapestPath>();
+
+		for (MedianEnemy enemy : medianEnemies) {
+			// Impedir inimigos de entrarem uns nos outros
+			for (GreedyEnemy otherEnemy : greedyEnemies) {
+				grid.setElementValue(otherEnemy.getGridX(), otherEnemy.getGridY(), FORBIDDEN);
+			}
+			grid.setElementValue(enemy.getGridX(), enemy.getGridY(), EMPTY);
+
+			EnemyCheapestPath enemyPath = new EnemyCheapestPath(enemy, player);
+			
+			if (enemyPath.getValid()) {
+				items.add(enemyPath);
+			}
+
+			// Reverter mudança
+			for (MedianEnemy otherEnemy : medianEnemies) {
+				grid.setElementValue(otherEnemy.getGridX(), otherEnemy.getGridY(), EMPTY);
+			}
+		}
+		
+		Quickselect<EnemyCheapestPath> quickselect = new Quickselect<EnemyCheapestPath>(new CompareEnemyCheapestPathCost());
+		List<EnemyCheapestPath> median = quickselect.getMedian(items);
+		EnemyCheapestPath choosen = median.get(median.size() - 1);
+		
+		moveEnemyToPlayerWithCost(choosen.getEnemy(), choosen.getPath());
+
+		grid.setVisitedToEmpty();
+	}
+
+	/**
+	 * @param enemy
+	 * @param path
+	 * Move inimigo até o jogador respeitando o custo máximo permitido pelo
+	 * inimigo.
+	 */
+	private void moveEnemyToPlayerWithCost(Enemy enemy, CheapestPath<Position, Integer> path) {
+		Integer actualCost = 0;
+		Position endPosition = new Position(enemy.getGridX(), enemy.getGridY());
+		Integer initialTileCost = grid.getElementCost(endPosition);
+		Position playerPosition = new Position(player.getGridX(), player.getGridY());
+		
+		for (Position p : path.getPath()) {
+			actualCost += grid.getElementCost(p);
+			
+			if (actualCost > enemy.getMoves() + initialTileCost) {
+				break;
+			} else if (p.equals(playerPosition)) {
+				endPosition = playerPosition;
+				break;
+			} else {
+				endPosition = p;
+			}
+		}
+		
+		enemy.setGridX(endPosition.getPosX());
+		enemy.setGridY(endPosition.getPosY());
 	}
 
 	private boolean checkOverride(int x1, int y1, int x2, int y2) {
