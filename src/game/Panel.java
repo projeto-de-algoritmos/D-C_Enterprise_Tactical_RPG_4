@@ -191,11 +191,14 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 	private boolean stepMode;
 	private boolean previewVisibility = true;
 
+	private int msDelay = 60;
+	private int msLongerDelay = 2 * msDelay;
+
 	public Panel(int size, int width, int height, boolean stepMode) {
 
 		// Step Mode
 		this.stepMode = stepMode;
-				
+
 		// Define os tamanhos
 		WIDTH = width;
 		HEIGHT = height;
@@ -316,7 +319,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 		map.draw(g2d);
 
 		// Desenha a Preview do movimento do Jogador
-		if(previewVisibility ) {
+		if (previewVisibility) {
 			drawPreview(g2d);
 		}
 		// Desenha o Jogador
@@ -364,10 +367,10 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 
 		// Move o Jogador
 		if (moveCost <= player.getMoves() && !inPlayer && !isForbidden(m)) {
-			if(stepMode) {
+			if (stepMode) {
 				// Movimentação passo a passo
 				movePlayer();
-			} else{
+			} else {
 				// Movimentação direta
 				player.setGridX((m.getX() - 1) / tileSize);
 				player.setGridY((m.getY() - 1) / tileSize);
@@ -392,18 +395,18 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 		}
 	}
 
-	private void movePlayer(){
+	private void movePlayer() {
 		int counter = 0;
 		previewVisibility = false;
-		for(Position pos : preview) {
-			if(counter > playerMoves)
+		for (Position pos : preview) {
+			if (counter > playerMoves)
 				break;
 			player.setGridX(pos.getPosX());
 			player.setGridY(pos.getPosY());
-			delayPaint(200);
+			delayPaint(msDelay);
 			counter++;
 		}
-		delayPaint(500);
+		delayPaint(msLongerDelay);
 	}
 
 	@Override
@@ -519,7 +522,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 
 		// Caminho dos inimigos medianos
 		encontraCaminhoInimigosMedian();
-		
+
 		// Reativa a visibilidade do preview
 		previewVisibility = true;
 
@@ -545,7 +548,9 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 			grid.setVisitedToEmpty();
 
 			// Atualiza a tela para mostrar o movimento individual de cada inimigo
-			delayPaint(250);
+			if (stepMode) {
+				delayPaint(msDelay);
+			}
 		}
 	}
 
@@ -597,7 +602,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 			Integer y;
 			if (currWeight + item.getWeight() <= maxWeight) {
 				lastPos = item.getPath().getPath().size() - 1;
-				if(stepMode) {
+				if (stepMode) {
 					// Movimentação passo a passo
 					moveGreedEnemy(item, item.getPath().getPath().get(lastPos));
 				} else {
@@ -607,12 +612,12 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 					item.getGreedyEnemy().setGridX(x);
 					item.getGreedyEnemy().setGridY(y);
 				}
-				
+
 				currWeight += item.getWeight();
 			} else {
 				Integer remainder = maxWeight - currWeight;
 				lastPos = item.getPath().getPath().size() > remainder ? remainder : item.getPath().getPath().size();
-				if(stepMode) {
+				if (stepMode) {
 					// Movimentação passo a passo
 					moveGreedEnemy(item, item.getPath().getPath().get(lastPos));
 				} else {
@@ -628,13 +633,13 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 
 		grid.setVisitedToEmpty();
 	}
-	
+
 	private void moveGreedEnemy(GreedyCheapestPath item, Position finish) {
-		for(Position p: item.getPath().getPath()) {
+		for (Position p : item.getPath().getPath()) {
 			item.getGreedyEnemy().setGridX(p.getPosX());
 			item.getGreedyEnemy().setGridY(p.getPosY());
-			delayPaint(200);
-			if(p == finish) {
+			delayPaint(msDelay);
+			if (p == finish) {
 				break;
 			}
 		}
@@ -645,7 +650,7 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 	 * mediana de número par de inimigos, será escolhido aquele com o maior custo de
 	 * movimentos
 	 */
-	public void encontraCaminhoInimigosMedian() {
+	private void encontraCaminhoInimigosMedian() {
 		grid.setVisitedToEmpty();
 
 		List<EnemyCheapestPath> items = new ArrayList<EnemyCheapestPath>();
@@ -709,12 +714,12 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 		Position playerPosition = new Position(player.getGridX(), player.getGridY());
 		for (Position p : path.getPath()) {
 			actualCost += grid.getElementCost(p);
-			
-			if(stepMode) {
+
+			if (stepMode) {
 				// Movimentação passo a passo
 				enemy.setGridX(p.getPosX());
 				enemy.setGridY(p.getPosY());
-				delayPaint(200);;
+				delayPaint(msDelay);
 			}
 			if (actualCost > enemy.getMoves() + initialTileCost) {
 				break;
@@ -724,9 +729,9 @@ public class Panel extends JPanel implements MouseListener, MouseMotionListener 
 			} else {
 				endPosition = p;
 			}
-			
+
 		}
-		if(!stepMode) {
+		if (!stepMode) {
 			// Movimentação direta
 			enemy.setGridX(endPosition.getPosX());
 			enemy.setGridY(endPosition.getPosY());
