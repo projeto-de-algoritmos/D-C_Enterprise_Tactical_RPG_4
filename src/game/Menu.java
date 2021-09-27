@@ -12,8 +12,9 @@ import javax.swing.JPanel;
 public class Menu {
 	private JFrame frame;
 	private boolean started = false;
+	private boolean stepMode = true;
 	private int size;
-	private JLabel gridSize;
+	private JLabel label;
 
 	public JFrame getFrame() {
 		return frame;
@@ -21,6 +22,10 @@ public class Menu {
 
 	public int getSize() {
 		return size;
+	}
+	
+	public boolean isStepMode() {
+		return stepMode;
 	}
 
 	public boolean isStarted() {
@@ -35,9 +40,10 @@ public class Menu {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 
-		gridSize = new JLabel("Grid Size: " + String.valueOf(size));
-		gridSize.setSize(100, 500);
-		gridSize.setHorizontalAlignment(JLabel.CENTER);
+		label = new JLabel("<html>Grid Size: " + String.valueOf(size) + 
+				"<br>Step Mode: " + String.valueOf(stepMode).toUpperCase() + "</html>");
+		label.setSize(100, 500);
+		label.setHorizontalAlignment(JLabel.CENTER);
 
 		JButton startButton = new JButton("Start");
 		startButton.setActionCommand("Start");
@@ -52,13 +58,19 @@ public class Menu {
 		lowerGridSizeButton.setActionCommand("lowerGridSize");
 		lowerGridSizeButton.addActionListener(new EventoBotao());
 		lowerGridSizeButton.setSize(200, 50);
+		
+		JButton toggleStepButton = new JButton("Toggle StepMode");
+		toggleStepButton.setActionCommand("toggleStepButton");
+		toggleStepButton.addActionListener(new EventoBotao());
+		toggleStepButton.setSize(200, 50);
 
 		frame.add(panel);
 		panel.setSize(500, 500);
 		panel.add(startButton, BorderLayout.PAGE_START);
-		panel.add(gridSize, BorderLayout.CENTER);
-		panel.add(raiseGridSizeButton, BorderLayout.LINE_START);
-		panel.add(lowerGridSizeButton, BorderLayout.LINE_END);
+		panel.add(label, BorderLayout.CENTER);
+		panel.add(raiseGridSizeButton, BorderLayout.LINE_END);
+		panel.add(lowerGridSizeButton, BorderLayout.LINE_START);
+		panel.add(toggleStepButton, BorderLayout.PAGE_END);
 
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setTitle("Enterprise Tactical RPG");
@@ -76,10 +88,16 @@ public class Menu {
 				started = true;
 			} else if (comando.equals("raiseGridSize") && size < 30) {
 				size++;
-				gridSize.setText("Grid Size: " + String.valueOf(size));
+				label.setText("<html>Grid Size: " + String.valueOf(size) + 
+						"<br>Step Mode: " + String.valueOf(stepMode).toUpperCase() + "</html>");
 			} else if (comando.equals("lowerGridSize") && size > 16) {
 				size--;
-				gridSize.setText("Grid Size: " + String.valueOf(size));
+				label.setText("<html>Grid Size: " + String.valueOf(size) + 
+						"<br>Step Mode: " + String.valueOf(stepMode).toUpperCase() + "</html>");
+			} else if (comando.equals("toggleStepButton") && size > 16) {
+				stepMode = !stepMode;
+				label.setText("<html>Grid Size: " + String.valueOf(size) + 
+						"<br>Step Mode: " + String.valueOf(stepMode).toUpperCase() + "</html>");
 			}
 		}
 	}

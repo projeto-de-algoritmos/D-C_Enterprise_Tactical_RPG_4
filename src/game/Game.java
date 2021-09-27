@@ -12,16 +12,24 @@ public class Game {
 	private Panel panel;
 	private int score;
 
-	public Game(int size) {
+	public Game(int size, boolean stepMode) {
 		this.setRunning(true);
+		
+		int mod = 500 % size;
+		
 		frame = new JFrame();
-		panel = new Panel(size);
+		
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setTitle("Enterprise Tactical RPG");
 		frame.pack();
-		frame.setSize(500 - 500 % size, 530 - 500 % size);
+		
+		
+		frame.setSize(500 - mod, 530 - mod);
 		frame.setLocationRelativeTo(null);
+		
+		panel = new Panel(size, 500-mod, 500-mod, stepMode);
 		frame.add(panel);
+		
 		frame.setVisible(true);
 		frame.setResizable(false);
 
