@@ -16,6 +16,8 @@ Um jogo cujo objetivo é sobreviver o maior número de turnos. É uma evolução
 projeto de *Greed*, agora permitindo habilitar animação dos movimentos e com
 adição de inimigos *Median*.
 
+[Link para vídeo no YouTube](https://youtu.be/VrB_-aslf8I)
+
 ## Screenshots
 
 ![Menu](https://i.imgur.com/m8vTIQG.png)
